@@ -3,6 +3,7 @@ package edu.cwru.sepia.agent;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
+import java.util.EmptyStackException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -260,7 +261,44 @@ public class AstarAgent extends Agent {
      */
     private boolean shouldReplanPath(State.StateView state, History.HistoryView history, Stack<MapLocation> currentPath)
     {
+		if (enemyFootmanID == -1 || currentPath.empty()) {
         return false;
+		}
+		boolean pathBlocked = false;// check to see if an enemy occupies the
+									// remaining steps to be followed
+		// loop through each location in the stack, check if it is occupied by
+		// the blocker
+		Stack<MapLocation> pathCopy = (Stack<MapLocation>) currentPath.clone();// make
+																				// a
+																				// clone
+																				// of
+																				// the
+																				// path
+																				// that
+																				// we
+																				// can
+																				// manipulate
+		Unit.UnitView enemyFootmanUnit = state.getUnit(enemyFootmanID);
+		MapLocation enemyFootmanLoc = new MapLocation(
+				enemyFootmanUnit.getXPosition(),
+				enemyFootmanUnit.getYPosition(), null, 0);// set current blocker
+															// location to a
+															// local variable
+		MapLocation nextLoc = pathCopy.pop();
+		while (nextLoc != null) {
+			if (nextLoc.equals(enemyFootmanLoc)) {// replace with condition that
+													// nextLoc is occupied by
+													// the blocker
+				pathBlocked = true;
+				break;
+			}
+			try {
+				nextLoc = pathCopy.pop();
+			} catch (EmptyStackException ex) {
+				nextLoc = null;
+			}
+		}
+		return pathBlocked;
     }
 
     /**
