@@ -259,47 +259,46 @@ public class AstarAgent extends Agent {
      * @param currentPath
      * @return
      */
-    private boolean shouldReplanPath(State.StateView state, History.HistoryView history, Stack<MapLocation> currentPath)
-    {
+	private boolean shouldReplanPath(State.StateView state,
+			History.HistoryView history, Stack<MapLocation> currentPath) {
 		if (enemyFootmanID == -1 || currentPath.empty()) {
-        return false;
+			return false;
 		}
-		boolean pathBlocked = false;// check to see if an enemy occupies the
-									// remaining steps to be followed
-		// loop through each location in the stack, check if it is occupied by
-		// the blocker
-		Stack<MapLocation> pathCopy = (Stack<MapLocation>) currentPath.clone();// make
-																				// a
-																				// clone
-																				// of
-																				// the
-																				// path
-																				// that
-																				// we
-																				// can
-																				// manipulate
+		boolean pathBlocked = false;
+		// Copy the path
+		Stack<MapLocation> pathCopy = (Stack<MapLocation>) currentPath.clone();
+		// Get the enemy footman location
 		Unit.UnitView enemyFootmanUnit = state.getUnit(enemyFootmanID);
 		MapLocation enemyFootmanLoc = new MapLocation(
 				enemyFootmanUnit.getXPosition(),
-				enemyFootmanUnit.getYPosition(), null, 0);// set current blocker
-															// location to a
-															// local variable
-		MapLocation nextLoc = pathCopy.pop();
+				enemyFootmanUnit.getYPosition(), null, 0);
+		int pathLenght = pathCopy.size();
+		// Attempt to get the MapLocation
+		MapLocation nextLoc = getNextPathLocation(pathCopy);
+		// Iterate through all locations
 		while (nextLoc != null) {
-			if (nextLoc.equals(enemyFootmanLoc)) {// replace with condition that
-													// nextLoc is occupied by
-													// the blocker
-				pathBlocked = true;
+			if (nextLoc.equals(enemyFootmanLoc)) {
+				// Check that we're actually close to the footman
+				if (pathLenght - pathCopy.size() < 5) {
+					pathBlocked = true;
+					break;
+				}
 				break;
 			}
-			try {
-				nextLoc = pathCopy.pop();
-			} catch (EmptyStackException ex) {
-				nextLoc = null;
-			}
+			nextLoc = getNextPathLocation(pathCopy);
 		}
 		return pathBlocked;
     }
+
+	private MapLocation getNextPathLocation(Stack<MapLocation> pathCopy) {
+		MapLocation nextLoc;
+		try {
+			nextLoc = pathCopy.pop();
+		} catch (EmptyStackException ex) {
+			nextLoc = null;
+		}
+		return nextLoc;
+	}
 
     /**
      * This method is implemented for you. You should look at it to see examples of
